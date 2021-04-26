@@ -1,0 +1,282 @@
+# Production version
+import random
+ 
+print("Hello player and welcome to Blackjack\n")
+print('')
+ 
+# define classes for the game
+ 
+class Card(object):
+  
+  def __init__(self, suit, value):
+         
+        self.suit = suit  # spade, diamonds etc.
+        self.value = value # 2 to A
+        self.card_value = self.get_card_value() #set_card_value in number, 
+# example: the card_value of 7Spades = 7, the card_value of QHarts = 10
+ 
+  # get card value 
+  def get_card_value(self):
+    if self.value in '12345678910':
+      self.card_value = self.value # if the card is number, the value is the number of the card 
+    else:
+      self.card_value = 10  # if the cadr is "A", "J", "Q", "K" , then values is 10
+ 
+  # print the instance in a user frindly way
+  def __str__(self):   
+    return 'Card:' +'\x1b[1;37;40m' +  f'{self.value}{self.suit}'  + '\x1b[0m' + ', card_value = {self.card_value}'.format(self=self)
+ 
+class Deck:
+  def __init__(self):
+    self.deck_cards = []
+    self.shuffle()
+ 
+  def build(self):
+    #all_suits = {"Spades":"\u2664", "Hearts":"\u2661", "Clubs": "\u2667", "Diamonds": "\u2662"}
+    all_suits = ["\u2664", "\u2661", "\u2667", "\u2662"]
+    all_cards = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
+    for value in all_cards:
+      for suit in all_suits: 
+        self.deck_cards.append(Card(suit,value))
+ 
+    for i in range(len(self.deck_cards)):
+      self.deck_cards[i].get_card_value()
+ 
+  # print the instance in a user frindly way
+  def __str__(self):   
+    return 'Current cards in Deck are: deck_cards={self.deck_cards}'.format(self=self)
+ 
+ # shuffle deck
+  def shuffle(self):
+        random.shuffle(self.deck_cards)
+ 
+# deal card from first place
+  def deal_card(self):
+        card = self.deck_cards.pop(0)
+        return card
+ 
+class Player:
+  def __init__(self , name):
+    self.name = name
+    self.hand=[]
+    self.hand_value = 0
+    self.chips = ''
+    self.isBust = False
+    self.isblackjack = False
+    self.score = 0
+ 
+ 
+  def get_card_from_deck(self, deck):
+    self.hand.append(deck.deal_card())
+  
+  def show_hand(self):
+    self.get_hand_value()
+    if len(self.hand) == 0:
+      return f'{self.name} hand have {len(self.hand)} cards' 
+    else:
+      return f'{self.name} hand have {len(self.hand)} cards:\n' + \
+      '\n'.join(map(str, self.hand)) + \
+      f'\n{self.name} hand value is: {sum([int(card.card_value) for card in self.hand])}'
+      print('')
+ 
+  def get_hand_value(self):
+    self.hand_value = sum([int(card.card_value) for card in self.hand])
+    return self.hand_value
+ 
+  def check_status(self):
+    # check if blackjack
+    if self.hand_value == 21:
+      self.isblackjack = True
+      print ("%s gets blackjack!" % self.name)
+      #print(f'{Name_Player}, you win with blackjack')
+    # check if bust
+    elif self.hand_value > 21:
+      self.isBust = True
+      print(f"{self.name} gets bust! he have {self.hand_value}")
+     # print(f'{Name_Player}, you win')
+    else:
+      return 'No blackjack and No bust'
+    
+  def computer_logic(self, game_level, game_deck):
+    if game_level == 1:
+      return 'y' if random.randint(0, 1) == 1 else 'n'
+    elif game_level == 2:
+      return 'y' if player2.hand_value < 17 else 'n'
+    elif game_level == 3:
+      if player2.hand_value > player1.hand_value:
+        return 'n'
+      if player2.hand_value < player1.hand_value:
+        return 'y'
+      else:
+        current_deck_value = 0
+        for x in range(0, len(game_deck.deck_cards)):
+          current_deck_value += int(game_deck.deck_cards[x].card_value)
+        if self.hand_value + (current_deck_value / len(game_deck.deck_cards)) <= 21:
+          return 'y'
+        else:
+          return 'n'
+        #return current_deck_value , len(game_deck.deck_cards) , (current_deck_value / len(game_deck.deck_cards)) , self.hand_value + (current_deck_value / len(game_deck.deck_cards))
+    else:
+      return 'n' 
+ 
+  def __str__(self):   
+    return 'name: name = {self.name} , hand = {self.hand}, chips={self.chips}'.format(self=self) 
+ 
+##### game main start here ########  
+Name_Player = input("What is your name?  \n")
+print('')
+start_game = input(f"Hi {Name_Player}, do you want to play Blackjack (answer y/n?) \n").lower()
+print('')
+#creating a player
+if start_game == 'y':
+  player1 = Player(Name_Player)
+  player2 = Player('Dealer')
+ 
+ 
+# select game level
+if start_game == "y":
+  game_level = input('Please select a game level:\
+  \n1 - Beginner\
+  \n2 - Intermediate\
+  \n3 - Advanced\
+  \n')
+ 
+# Keep playing for any number of rounds
+while (start_game == "y"):
+  print('')
+  print('~'*10+f' let`s go {Name_Player} '+'~'*10)
+  print('')
+ 
+  # create a deck for current game:
+  game_deck = Deck()
+  game_deck.build()
+  game_deck.shuffle()
+ 
+ # we need a fresh setup
+  player1.hand = []
+  player2.hand = []
+  player1.isblackjack = False 
+  player1.isBust = False 
+  player2.isblackjack = False 
+  player2.isBust = False 
+  round_player1 = 'n'
+  round_player2 = 'n'
+  # Round 1 the player get two cards, Computer gets 1 open card and then decides what to do
+ 
+  ####    Player 1 turn round 1   #### 
+  round_number = 0
+  player1.get_card_from_deck(game_deck)
+  print( player1.show_hand())
+  round_number += 1
+  print('')
+ 
+  player1.get_card_from_deck(game_deck)
+  print( player1.show_hand())
+  print('')
+ 
+  ####    Player 2/compuer turn round 1   #### 
+  player2.get_card_from_deck(game_deck)
+  print( player2.show_hand())
+  round_number += 1
+  print('~'*10+f' End of round number {round_number} '+'~'*10)
+  print('')
+  
+  ####  After dealing 2 card for player and 2 for computer check status ###
+  player1.check_status()
+  print('{:<10} hand_value = {:<2}'.format(player1.name , player1.hand_value))
+  print('{:<10} hand_value = {:<2}'.format(player2.name , player2.hand_value))
+  if player1.isblackjack == False:  
+    round_player1 = input('Do you want another card? (answer y/n?) ').lower()
+  else: player1.score += 1
+  
+  ####    Player 1 turn round 3 and looping till round_player1 == 'n'   ####
+  while round_player1 == 'y':
+ 
+    player1.get_card_from_deck(game_deck)
+    print(player1.show_hand())
+    print(player2.show_hand())
+    round_number += 1
+    print('~'*10+f' End of round number {round_number} '+'~'*10)
+    print('')
+    player1.check_status()
+ 
+    if (player1.isblackjack == True or player1.isBust == True):
+      round_player1 = 'n'
+      
+    else: 
+      round_player1 = 'y'
+      print('')
+      print('{:<10} hand_value = {:<2}'.format(player1.name , player1.hand_value))
+      print('{:<10} hand_value = {:<2}'.format(player2.name , player2.hand_value))
+      player1.check_status()
+      if (player1.isblackjack == True or player1.isBust == True):
+        round_player1 = 'n'
+      else:
+        round_player1 = input('Do you want another card? (answer y/n?) ').lower()
+ 
+  if player1.isblackjack:
+        player1.score += 1
+  elif player1.isBust:
+        player2.score += 1 
+ 
+  print('{:<10} hand_value = {:<2}'.format(player1.name , player1.hand_value))
+  print('{:<10} hand_value = {:<2}'.format(player2.name , player2.hand_value))
+ 
+  print('')
+  ####    Player 2 compuer turn, compuer round 2   #### 
+  if player1.isblackjack == False and player1.isBust == False:   
+    round_player2 = 'y'
+    #print('###### dealer turn, this is where dealer logic starts: #####')
+    while round_player2 == 'y':
+     player2.get_card_from_deck(game_deck)
+     print(player2.show_hand())
+     round_number += 1
+     print('~'*10+f' End of round number {round_number} '+'~'*10)
+     print('')
+     player2.check_status()
+     if player2.isblackjack:
+        player2.score += 1
+        round_player2 = 'n'
+     elif player2.isBust:
+        player1.score += 1 
+        round_player2 = 'n'
+     elif round_player2 == 'y':
+       round_player2 = player2.computer_logic(int(game_level), game_deck)
+ 
+ 
+# Score
+  print(2 * "\n")
+  print('~'*10 + f'  End of round {round_number} ' + 'and the hand values are:' + '~'*10)
+ 
+  print('{:<10} hand_value = {:<2}'.format(player1.name , player1.hand_value))
+  print('{:<10} hand_value = {:<2}'.format(player2.name , player2.hand_value))
+ 
+  if player1.isblackjack == True:
+   print(f'Ye! {player1.name} isblackjack {player1.name}  wins!')
+  elif player1.isBust == True:
+    print(f'No! {player1.name} is bust, {player2.name} wins!') 
+  elif player2.isblackjack == True:
+    print(f'No! {player2.name} isblackjack {player2.name}  wins!')
+  elif player2.isBust == True:
+    print(f'Ye! {player2.name} is bust, {player1.name} wins!') 
+  elif player1.hand_value > player2.hand_value:
+    print(f'Ye! {player1.name} wins!')
+    player1.score += 1
+  elif player1.hand_value < player2.hand_value:
+    print(f'No! {player2.name} wins!')
+    player2.score += 1
+  else:
+    print(f'''It's a tie! I sugesst another round''')
+   
+  print('\nThe score after this game is:')
+  print( '{:<10} scores {:>2}'.format(player1.name ,player1.score ))
+  print( '{:<10} scores {:>2}'.format(player2.name ,player2.score ))
+ 
+ 
+# last part before the loop starts again
+  print(2 * "\n")
+  start_game = input("do you want to play again (answer y/n?) ").lower()
+ 
+print(3 * "\n")
+#End
+print("Thank you for you playing with us")
